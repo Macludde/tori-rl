@@ -22,5 +22,5 @@ while True:
 		if data == 'exit':
 			client.close()
 		if data == 'close-server':
-    		server.close()
-    		exit()
+			server.close()
+			exit()
