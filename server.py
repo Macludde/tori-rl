@@ -1,16 +1,18 @@
-import socket               # Import socket module
+import socket
+import select
+import sys
 
-server = socket.socket()         # Create a socket object
-host = "localhost" # Get local machine name
-port = 7051                # Reserve a port for your service.
-server.bind((host, port))        # Bind to the port
-RECV_BUFFER = 4096 # Advisable to keep it as an exponent of 2
+server = socket.socket()
+host = "localhost" 
+port = 7051
+server.bind((host, port))
+RECV_BUFFER = 4096 
 
 print("Server started. Listening on port", port)
 
-server.listen(5)                 # Now wait for client connection.
+server.listen(5)
 while True:
-	client, addr = server.accept()     # Establish connection with client.
+	client, addr = server.accept()
 	print('Got connection from', addr)
 	client.send('Thank you for connecting'.encode('utf-8'))
 	while True:
@@ -18,5 +20,5 @@ while True:
 		if data != b'':
 			print(data)
 		if data=='exit':
-			client.close()              # Close the connection
+			client.close()
 server.close()
