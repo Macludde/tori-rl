@@ -1,10 +1,12 @@
 import socket               # Import socket module
+import time
 
 s = socket.socket()         # Create a socket object
 host = socket.gethostname() # Get local machine name
-port = 12345                # Reserve a port for your service.
+port = 7051                 # Reserve a port for your service.
 
 s.connect((host, port))
-s.send('Thank you for connecting'.encode('utf-8'))
-# print s.recv(1024)
-s.close() 				# Close the socket when done
+while True:
+	print("Sending data")
+	s.send('Hello!'.encode('utf-8'))
+	time.sleep(1)

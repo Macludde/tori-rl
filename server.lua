@@ -1,7 +1,7 @@
 -- load namespace
 local socket = require("socket")
 -- create a TCP socket and bind it to the local host, at any port
-local server = assert(socket.bind("*", 0))
+local server = assert(socket.bind("*", 7051))
 -- find out which port the OS chose for us
 local ip, port = server:getsockname()
 -- print a message informing what's up
@@ -22,6 +22,4 @@ while 1 do
   print(line)
   -- if there was no error, send it back to the client
   if not err then client:send(line .. "\n") end
-  -- done with client, close the object
-  client:close()
 end
