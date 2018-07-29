@@ -1,4 +1,4 @@
-function trim(s)
+local function trim(s)
 	return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
 end
 
@@ -10,7 +10,7 @@ print("Client created")
 client:connect(host, port);
 client:send("hello world\n");
 
-while true do
+local function getAction()
 	local s, status, partial = client:receive()
 	s = trim(s)
 	local moves = {}
