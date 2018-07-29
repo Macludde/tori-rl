@@ -18,3 +18,4 @@ while True:
 			print(data)
 		if data=='exit':
 			c.close()              # Close the connection
+s.close()
