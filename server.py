@@ -3,7 +3,7 @@ import select
 import sys
 
 server = socket.socket()
-host = "localhost" 
+host = "172.16.0.127" 
 port = 7051
 server.bind((host, port))
 RECV_BUFFER = 4096 
@@ -14,13 +14,16 @@ server.listen(5)
 while True:
 	client, addr = server.accept()
 	print('Got connection from', addr)
-	client.send('Thank you for connecting'.encode('utf-8'))
 	while True:
-		data = client.recv(RECV_BUFFER)
-		if data != b'':
-			print(data)
-		if data == 'exit':
-			client.close()
-		if data == 'close-server':
-			server.close()
-			exit()
+		if False:
+			data = client.recv(RECV_BUFFER)
+			if data != b'':
+				print(data)
+			if data == 'exit':
+				client.close()
+			if data == 'close-server':
+				server.close()
+				exit()
+		msg = input("message: ")
+		if len(msg) == 21:
+			client.send((msg + "\n").encode('utf-8'))
