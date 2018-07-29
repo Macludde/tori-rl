@@ -8,7 +8,7 @@ print("Client created")
 
 
 client:connect(host, port);
-client:send("hello world\naaa\n");
+client:send("hello world");
 
 
 while true do
