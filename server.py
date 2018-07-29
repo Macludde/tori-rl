@@ -19,6 +19,8 @@ while True:
 		data = client.recv(RECV_BUFFER)
 		if data != b'':
 			print(data)
-		if data=='exit':
+		if data == 'exit':
 			client.close()
-server.close()
+		if data == 'close-server':
+    		server.close()
+    		exit()
