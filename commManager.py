@@ -14,3 +14,15 @@ def writeComms(data):
 	commsLua.close()
 
 
+readComms();
+sleep(10000);
+writeComms("move:3,2,1,0,2,0,3,1,0,1,1,2")
+while True:
+	line = readComms()
+	if line != "":
+		break;
+writeComms("move:3,2,1,0,2,0,3,1,0,1,1,2")
+while True:
+	line = readComms()
+	if line != "":
+		break;
