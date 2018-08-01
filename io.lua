@@ -1,59 +1,27 @@
-CommsWrite = "commsPy.txt"
-CommsRead = "commsLua.txt"
-
-local function open_file(filename)
-        local oldinput = io.input()
-	io.input(filename)
-	local file = io.input()
-	io.input(oldinput)
-	return file
-     end
-
-local function write_file(filename)
-	local oldoutput = io.output()
-	io.output(filename)
-	local file = io.output()
-	io.output(oldoutput)
-	return file
-     end
-
 local function append_to_file(filename,string)
    local tmpInput = open_file(filename)
    local lines = {}
  end
+
  
- local function read_from_Py()
- 	file = open_file(CommsRead)
-	data = file:read("*l")
+local function readComms()
+ 	file = io.open("commsLua.txt", "r")
+ 	data = file:read()
 	file:close()
-	file = write_file()
-	file:write("")
-	return data
+ 	file = io.open("commsLua.txt", "w")
+ 	file:write("")
+ 	file:close()
+
+ 	return data
 end
  
- local function send_to_Py(vars)
- tmpFile = write_file(CommsWrite)
-	 tmpFile:write(vars)
-	 tmpFile:close()
-	 echo("done")
+local function writeComms(data)
+	file = io.open("commsPy.txt", "w")	
+	file:write(data)
+	file:close()
 end
-int = 0
-while true do
-	int = int + 1
-	send_to_Py(int)
-	while true do
-		temp = read_from_Py()
-		if (temp ~= nil) then
-			break
-		end
-	end
-	if (int > 1000000) then 
-		break
-	end
-end
-	
-	
-	
 
 
-
+writeComms("Data27")
+echo(readComms())
+echo(readComms())
