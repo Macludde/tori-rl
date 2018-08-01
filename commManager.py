@@ -11,3 +11,10 @@ def writeComms(data):
 	commsLua = open("commsLua.txt", "a")
 	commsLua.write(data) 
 	commsLua.close()
+
+
+def waitForInput():
+	while True:
+		data = readComms()
+		if data != "":
+			return data

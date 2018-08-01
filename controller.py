@@ -11,4 +11,10 @@ def setMuscles(muscleArray):
 	data = data[:-1]
 	commManager.writeComms(data)
 
+def getData():
+	return commManager.waitForInput()
+
 setMuscles([0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2])
+print(getData())
+setMuscles([])
+print(getData())
