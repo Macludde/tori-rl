@@ -23,20 +23,17 @@ local function next_turn()
 end
 local function next_game()
 	start_new_game()
-	
+end	
 
 local function make_move(playID,valArr)
    jointVals = valArr
-   echo("move")
    for i = 1,21 do
       set_joint_state(0, i-1, jointVals[i])
    end
    set_grip_info(playID, 11,jointVals[20])
    set_grip_info(playID, 12,jointVals[21])
-   echo("endi")
 end
 local function get_players_moves()
-	echo("look")
 	jointsArr1 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	jointsArr2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 	array = {}
@@ -84,11 +81,8 @@ end
 	
 
 local function execute_turn()
-	echo("make")
 	make_move(playerID,inputen)
 	values = Get_State()
-	echo("jk")
-	echo(values)
 	writeComms(values)
 	
 	next_turn()
