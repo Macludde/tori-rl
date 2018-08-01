@@ -1,14 +1,14 @@
 def readComms():
 	commsPy = open("commsPy.txt","r+")
 	line = commsPy.readline()
-	# Process Line
-	commsPy.truncate(0);
+	if (line != ""):
+		commsPy.truncate(0);
 	commsPy.close()
 	return line
 
 
 def writeComms(data):
-	commsLua = open("commsLua.txt", "a")
+	commsLua = open("commsLua.txt", "w")
 	commsLua.write(data) 
 	commsLua.close()
 

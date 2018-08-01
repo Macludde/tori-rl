@@ -1,5 +1,5 @@
 import commManager
-
+import random
 
 def setMuscles(muscleArray):
 	data = "move:"
@@ -14,7 +14,8 @@ def setMuscles(muscleArray):
 def getData():
 	return commManager.waitForInput()
 
-setMuscles([0,1,2,3,0,1,2,3,0,1,2,3,0,1,2,3,0,1,2])
-print(getData())
-setMuscles([])
-print(getData())
+def setRandomMuscles():
+	moves = []
+	for i in range(22):
+		moves.append(random.randint(0, 3))
+	setMuscles(moves)
