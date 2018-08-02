@@ -38,7 +38,7 @@ class Agent():
 	def setup(self): 
 		self.model = self.createModel(88)
 		#self.model = load_model("model_weights.h5")
-		#self.model.load_weights("model_weights_only.h5")
+		self.model.load_weights("model_weights_only.h5")
 
 	def save_model(self):
 		self.model.save_weights("model_weights_only.h5")
@@ -77,10 +77,11 @@ class Agent():
 			self.model.fit(state, target_f, epochs=1, verbose=0)
 		if self.exploration_rate > 0.03:
 			self.exploration_rate *= self.exploration_decay
-		print("Average difference: " + str(sum(differences) / float(len(differences))))
-		print(np.std(self.totalRewards))
-		"""
+
 		if (self.epochs % 20 == 0):
+			print("Average difference: " + str(sum(differences) / float(len(differences))))
+			print(np.std(self.totalRewards))
+		"""
 			plt.plot(self.totalRewards)
 			plt.ylabel('Total Reward')
 			plt.show()
@@ -89,35 +90,26 @@ class Agent():
 
 	def getData(self):
 		data = controller.getData()
+		dataPoints = np.array([[float(dataPoint) for dataPoint in data[5:].split(",")][:-1]])
+		reward = math.floor(float(data[5:].split(",")[-1]))
+
 		if data[:5] == "done:":
-			doneState = np.array([[-1]])
-			finalReward =math.floor(float(data[5:]))
-			print("Final reward: " + str(finalReward))
-			self.totalRewards.insert(0, finalReward)
+			self.totalRewards.insert(0, reward)
 			if (len(self.totalRewards) > 20):
 				self.totalRewards.pop()
-			return (doneState,finalReward)
-		data = data[5:]
-		dataPoints = np.array([[float(dataPoint) for dataPoint in data.split(",")][:-1]])
-		reward = float(data.split(",")[-1])
-		return (dataPoints, reward)
+
+		return (dataPoints, reward, (data[:5] == "done:"))
 
 	def run(self):
 		try:
 			while True:
-				state, points = self.getData()
-
-				done = False
+				state, points, done = self.getData()
 				index = 0
 				while not done:
 					action = self.act(state)
 					controller.setMuscles(action)
-					next_state, next_points = self.getData()
+					next_state, next_points, done = self.getData()
 					reward = next_points - points
-					done = next_state.shape[1] == 1
-					if (done):
-						break
-					reward = -reward
 					self.remember(state, action, reward, next_state, done)
 					state = next_state
 					points = next_points
