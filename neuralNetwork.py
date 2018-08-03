@@ -17,6 +17,7 @@ class Agent():
 		self.sample_batch_size = 32
 		self.totalRewards = []
 		self.epochs = 1
+		self.twoPlayers = True
 
 	def createModel(self, output):
 		# Neural Net for Deep-Q learning Model
@@ -78,8 +79,7 @@ class Agent():
 		if self.exploration_rate > 0.03:
 			self.exploration_rate *= self.exploration_decay
 
-		if (self.epochs % 20 == 0):
-			print("Average difference: " + str(sum(differences) / float(len(differences))))
+		if (self.epochs % 5 == 0):
 			print(np.std(self.totalRewards))
 		"""
 			plt.plot(self.totalRewards)
@@ -90,35 +90,85 @@ class Agent():
 
 	def getData(self):
 		data = controller.getData()
-		dataPoints = np.array([[float(dataPoint) for dataPoint in data[5:].split(",")][:-1]])
+		dataPoints = np.array([[float(dataPoint) for dataPoint in data[5:].split(",")][1:-1]])
 		reward = math.floor(float(data[5:].split(",")[-1]))
+		player = int(data[5])
 
 		if data[:5] == "done:":
+			turns = math.floor(reward/10000000)
+			reward = reward % 10000000 + turns*1000
 			self.totalRewards.insert(0, reward)
 			if (len(self.totalRewards) > 20):
 				self.totalRewards.pop()
 
-		return (dataPoints, reward, (data[:5] == "done:"))
+		return (dataPoints, reward, (data[1:5] == "done:"), player)
 
 	def run(self):
+		players = [{
+			"state": 0,
+			"points": 0,
+			"next_state": 0,
+			"next_points": 0,
+			"action": []
+		}, 
+		{
+			"state": 0,
+			"points": 0,
+			"next_state": 0,
+			"next_points": 0,
+			"action": []
+		}]
+
 		try:
 			while True:
-				state, points, done = self.getData()
+				temp_state, temp_points, done, player = self.getData()
+				players[player]["state"] = temp_state
+				players[player]["points"] = temp_points
+
+				players[player]["action"] = self.act(players[player]["state"])
+				controller.setMuscles(players[player]["action"])
+				temp_state, temp_points, done, player = self.getData()
+				players[player]["state"] = temp_state
+				players[player]["points"] = temp_points
+
 				index = 0
 				while not done:
-					action = self.act(state)
-					controller.setMuscles(action)
-					next_state, next_points, done = self.getData()
-					reward = next_points - points
-					self.remember(state, action, reward, next_state, done)
-					state = next_state
-					points = next_points
+					players[player]["action"] = self.act(players[player]["state"])
+					controller.setMuscles(players[player]["action"])
+					temp_state, temp_points, done, player = self.getData()
+					players[player]["next_state"] = temp_state
+					players[player]["next_points"] = temp_points
+					reward = players[player]["next_points"] - players[player]["points"]
+
+					self.remember(players[player]["state"], players[player]["action"], reward, players[player]["next_state"], done)
+
+					if (done and self.twoPlayers):
+						players[1-player]["next_state"] = self.flipData(players[players]["state"])
+						reward = -reward
+						self.remember(players[1-player]["state"], players[1-player]["action"], reward, players[1-player]["next_state"], done)
+						players[1-player]["state"] = players[1-player]["next_state"]
+						players[1-player]["points"] = players[1-player]["next_points"]
+
+					players[player]["state"] = players[player]["next_state"]
+					players[player]["points"] = players[player]["next_points"]
 					index += 1
+
 				self.replay(self.sample_batch_size)
 				self.save_model()
 				self.epochs += 1
 		finally:
 			self.save_model()
+
+	def flipData(self, data):
+		print(data)
+		data[:3] = data[3:6]
+		data[3:6] = data[:3]
+		data[6:9] = data[9:12]
+		data[9:12] = data[6:9]
+		data[12:72] = data[72:]
+		data[72:] = data[12:72]
+		print(data)
+		return data
 
 
 agent = Agent()
