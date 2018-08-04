@@ -1,5 +1,7 @@
 input = ({4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,3})
-playerID = 0
+mainPlayerID = 0
+oppponentID = 1
+twoPlayers = true
 turns = 0
 
 local function split(source, delimiters)
@@ -29,29 +31,30 @@ local function writeComms(data)
 end
 
 
-local function Get_State()
+local function Get_State(playerID)
 	array  = {}
+	table.insert(array, playerID)
 	for i = 0,1 do
-		local varx,vary,varz = get_body_angular_vel(i,0)
+		local varx,vary,varz = get_body_angular_vel((i+playerID)%2,0	)
 	
-		table.insert(array,varx)
-		table.insert(array,vary)
-		table.insert(array,varz)
+		table.insert(array,varx*50)
+		table.insert(array,vary*50)
+		table.insert(array,varz*50)
 	end
 		for i = 0,1 do
-		local varx,vary,varz = get_body_linear_vel(i,0)
+		local varx,vary,varz = get_body_linear_vel((i+playerID)%2, 0)
 	
-		table.insert(array,varx)
-		table.insert(array,vary)
-		table.insert(array,varz)
+		table.insert(array,varx*50)
+		table.insert(array,vary*50)
+		table.insert(array,varz*50)
 	end
 	for i = 0,1 do
 		for o = 0,19 do
-			local varx,vary,varz = get_joint_pos(i,o)
+			local varx,vary,varz = get_joint_pos((i+playerID)%2,o)
 	
-			table.insert(array,varx)
-			table.insert(array,vary)
-			table.insert(array,varz)
+			table.insert(array,varx*50)
+			table.insert(array,vary*50)
+			table.insert(array,varz*50)
 		end
 	end
 	table.insert(array, get_player_info(1-playerID).injury)
@@ -66,58 +69,49 @@ end
 
 local function next_game()
 	win = get_world_state().winner
+
 	winPoints = 0
 	if win~=-1 then
-		winPoints = 1000000 * ((playerID == win) and 1 or -1)
-		if (playerID == win) then
+		winPoints = 100000000 * ((mainPlayerID == win) and 1 or -1)
+		if (mainPlayerID == win and not twoPlayers) then
 			echo("Player Won")
 		end
 	end
-	values = Get_State()
-	values[table.getn(values)] = get_player_info(1-playerID).injury-get_player_info(playerID).injury + winPoints + turns*1000
+	values = Get_State(mainPlayerID)
+	values[table.getn(values)] = get_player_info(1-mainPlayerID).injury - get_player_info(mainPlayerID).injury + winPoints
 	array = table.concat(values,",")
 	writeComms("done:"..array)
+
 	turns = 0
 	start_new_game()
 end
 	
 
 local function make_move(playerID,jointVals)
-   for i = 1,21 do
-      set_joint_state(playerID, i-1, jointVals[i])
-   end
-   if (jointVals[21] > 2) then
-   	set_grip_info(playerID, 11,1)
-   else 
-   	set_grip_info(playerID, 11,0.5)
-   end
-
-   if (jointVals[22] > 2) then
-   	set_grip_info(playerID, 12,1)
-   else 
-   	set_grip_info(playerID, 12,0.5)
-   end
-end
-local function get_players_moves()
-	echo("look")
-	jointsArr1 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-	jointsArr2 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
-	array = {}
-	for i = 0,1 do
-		for k = 0,19 do
-			l = get_joint_info(i,k)
-			
-			table.insert(array,l)
-			
+	for i = 1,21 do
+		if (jointVals[i] ~= 0) then
+      		set_joint_state(playerID, i-1, jointVals[i])
+  		end
+	end
+	if (jointVals[21] ~= 0) then
+		if (jointVals[21] > 2) then
+			set_grip_info(playerID, 11,1)
+		else 
+			set_grip_info(playerID, 11,0.5)
 		end
 	end
-	
-	return array
+	if (jointVals[22] ~= 0) then
+		if (jointVals[22] > 2) then
+			set_grip_info(playerID, 12,1)
+		else 
+			set_grip_info(playerID, 12,0.5)
+		end
+	end
 end
 
 
 
-local function processInput(input)
+local function processInput(playerID, input)
 	substring = string.sub(input, 1, 4)
 	data = string.sub(input, 6)
 	if (substring == "move") then
@@ -131,11 +125,11 @@ local function processInput(input)
 	end
 end
 
-local function waitForInput()
+local function waitForInput(playerID)
 	while true do
 		data = readComms()
 		if (data ~= nil) then
-			processInput(data)
+			processInput(playerID, data)
 			break
 		end
 	end
@@ -143,11 +137,17 @@ end
 	
 
 local function execute_turn()
-	values = Get_State()
+	values = Get_State(mainPlayerID)
+	opponentValues = Get_State(oppponentID)
 	array = table.concat(values,",")
+	opponentArray = table.concat(opponentValues,",")
 	writeComms("data:"..array)
+	waitForInput(mainPlayerID)
+	if (twoPlayers) then
+		writeComms("data:"..opponentArray)
+		waitForInput(oppponentID)
+	end
 
-	waitForInput()
 	
 	next_turn()
 end
