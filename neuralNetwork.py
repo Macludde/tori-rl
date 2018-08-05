@@ -11,28 +11,28 @@ class Agent():
 	def __init__(self):
 		self.learning_rate = 0.001
 		self.gamma = 0.98
-		self.exploration_rate = 0.2
-		self.exploration_decay = 0.999955
+		self.exploration_rate = 0.1
+		self.exploration_decay = 0.995#0.999955
 		self.memories = [[]]
 		self.sample_batch_size = 32
 		self.totalRewards = []
 		self.epochs = 0
 		self.twoPlayers = True
 		self.wins = [];
-		self.disabled = [False, True];
+		self.disabled = [False, False];
 		self.randomOpponent = True;
 
 	def createModel(self, output):
 		# Neural Net for Deep-Q learning Model
 		model = Sequential()
-		model.add(Dense(256, input_dim=132, activation="relu"))
+		model.add(Dense(128, input_dim=132, activation="tanh"))
 		model.add(Dropout(0.2))
 
-		model.add(Dense(128, activation="relu"))
+		model.add(Dense(64, activation="tanh"))
 		model.add(Dropout(0.2))
 
-		model.add(Dense(64, activation="relu"))
-		model.add(Dropout(0.08))
+		model.add(Dense(16, activation="tanh"))
+		model.add(Dropout(0.1))
 
 		model.add(Dense(output, activation="linear"))
 
@@ -47,7 +47,7 @@ class Agent():
 		if self.twoPlayers:
 			self.wins.append(0);
 			self.models.append(self.createModel(88))
-			#self.models[1].load_weights("model_weights_only_1.h5")
+			self.models[1].load_weights("model_weights_only_1.h5")
 			self.memories.append([])
 
 	def save_model(self):
@@ -57,7 +57,7 @@ class Agent():
 
 	def act(self, state, id):
 		moves = []
-		if (self.disabled[id] or np.random.rand() <= self.exploration_rate*0.1 + 0.15*id*0.1):
+		if (self.disabled[id] or np.random.rand() <= self.exploration_rate*0.1 + 0.05*id*0.1):
 			if (not self.randomOpponent):
 				moves = [2 for i in range(20)]
 				moves.append(0)
@@ -73,7 +73,7 @@ class Agent():
 		"""
 		act_values = self.models[id].predict(state)[0]
 		for i in range(22):
-			if np.random.rand() <= self.exploration_rate + 0.15*id:
+			if np.random.rand() <= self.exploration_rate + 0.05*id:
 				moves.append(random.randint(0,3))
 			else:
 				moves.append(np.argmax(act_values[i:i+4])%4)
@@ -119,7 +119,6 @@ class Agent():
 		reward = math.floor(float(data[5:].split(",")[-1]))
 		player = int(data[5])
 		done = -1
-
 		if data[:5] == "done:":
 			oneWon = reward > 1000000
 			reward = reward - 100000000*(oneWon*2-1) - 3000*(oneWon*2-1)
@@ -171,18 +170,21 @@ class Agent():
 					temp_state, temp_points, done, player = self.getData()
 					players[player]["next_state"] = temp_state
 					players[player]["next_points"] = temp_points
-					reward = players[player]["next_points"] - players[player]["points"]
 
+					reward = (players[player]["next_points"] - players[player]["points"]) if done==-1 else 0
 
 					self.remember(players[player]["state"], players[player]["action"], 
-						reward + (done >= 0)*((done==player*2-1)*60000/turns + turns*500), 
+						reward + (done >= 0)*((done==player*2-1)*60000/turns), 
 						players[player]["next_state"], done, player)
+
 					if (done >= 0 and self.twoPlayers):
 						players[1-player]["next_state"] = self.flipData(players[player]["state"])
 						reward = -reward
+
 						self.remember(players[1-player]["state"], players[1-player]["action"], 
 							reward + (done==player*2-1)*60000/turns + turns*500, 
 							players[1-player]["next_state"], done, 1-player)
+
 						players[1-player]["state"] = players[1-player]["next_state"]
 						players[1-player]["points"] = players[1-player]["next_points"]
 
@@ -197,7 +199,7 @@ class Agent():
 
 				if (self.epochs % 5 == 0):
 					print("Wins: " + str(self.wins))
-					print("Last 100 wins per epoch: {}".format(str(self.wins[0]/self.epochs)))
+					print("Wins per epoch: {}".format(str(self.wins[0]/self.epochs)))
 		finally:
 			self.save_model()
 

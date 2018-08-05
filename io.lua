@@ -37,24 +37,24 @@ local function Get_State(playerID)
 	for i = 0,1 do
 		local varx,vary,varz = get_body_angular_vel((i+playerID)%2,0	)
 	
-		table.insert(array,varx*50)
-		table.insert(array,vary*50)
-		table.insert(array,varz*50)
+		table.insert(array,varx)
+		table.insert(array,vary)
+		table.insert(array,varz)
 	end
 		for i = 0,1 do
 		local varx,vary,varz = get_body_linear_vel((i+playerID)%2, 0)
 	
-		table.insert(array,varx*50)
-		table.insert(array,vary*50)
-		table.insert(array,varz*50)
+		table.insert(array,varx)
+		table.insert(array,vary)
+		table.insert(array,varz)
 	end
 	for i = 0,1 do
 		for o = 0,19 do
 			local varx,vary,varz = get_joint_pos((i+playerID)%2,o)
 	
-			table.insert(array,varx*50)
-			table.insert(array,vary*50)
-			table.insert(array,varz*50)
+			table.insert(array,varx)
+			table.insert(array,vary)
+			table.insert(array,varz)
 		end
 	end
 	table.insert(array, get_player_info(1-playerID).injury)
